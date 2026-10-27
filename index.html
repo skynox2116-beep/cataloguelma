@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14532d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Parc Machines</title>
+<style>
+:root{
+  --bg:#f4f5f3;--card:#fff;--ink:#1a1f1c;--mute:#667068;--line:#dfe3de;
+  --brand:#14532d;--brand-ink:#fff;--accent:#d97706;--danger:#b91c1c;--r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121513;--card:#1c211e;--ink:#eef1ee;--mute:#9aa59d;--line:#2e3631;--brand:#4ade80;--brand-ink:#052e16;--accent:#fbbf24;--danger:#f87171}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:env(safe-area-inset-bottom)}
+#app{max-width:760px;margin:0 auto;min-height:100vh}
+header.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
+header.bar h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+main{padding:14px}
+button,.btn{font:inherit;border:0;border-radius:var(--r);padding:12px 16px;background:var(--card);color:var(--ink);border:1px solid var(--line);cursor:pointer;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+button:active{transform:scale(.98)}
+.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+.danger{color:var(--danger)}
+.icon{min-width:46px;padding:0 12px;font-size:20px}
+.ghost{background:transparent;border-color:transparent}
+.big{min-height:120px;font-size:22px;width:100%;flex-direction:column}
+.big svg{width:44px;height:44px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;text-align:left;width:100%;min-height:58px}
+.item .t{font-weight:600}
+.item .s{color:var(--mute);font-size:14px}
+.item .grow{flex:1;min-width:0}
+.item .grow>*{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:20px 0 8px}
+label{display:block;font-size:13px;color:var(--mute);margin:14px 0 4px}
+input,select,textarea{font:inherit;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:46px}
+textarea{min-height:110px;resize:vertical}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:15px}
+.kv dt{color:var(--mute)}.kv dd{margin:0;white-space:pre-wrap;word-break:break-word}
+.chip{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:13px;color:var(--mute)}
+.empty{color:var(--mute);text-align:center;padding:28px 10px}
+.zonehead{display:flex;align-items:center;gap:8px;margin:22px 0 8px;font-weight:700}
+.zonehead .chip{margin-left:auto}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
+#toast.on{opacity:1}
+/* scanner */
+.scan{position:fixed;inset:0;background:#000;z-index:20;display:flex;flex-direction:column}
+.scan video{flex:1;width:100%;object-fit:cover;min-height:0}
+.scan .frame{position:absolute;left:50%;top:38%;width:70vmin;height:70vmin;max-width:340px;max-height:340px;transform:translate(-50%,-50%);border:3px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45);pointer-events:none}
+.scan .ctl{padding:14px 14px calc(14px + env(safe-area-inset-bottom));background:#111;display:flex;flex-direction:column;gap:10px}
+.scan .ctl input{background:#222;color:#fff;border-color:#333}
+.scan .msg{color:#ddd;text-align:center;font-size:14px;min-height:20px}
+.docs .item{cursor:default}
+.thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute);flex:none}
+.net{font-size:12px;color:var(--mute)}
+.net.off::before{content:"● ";color:var(--accent)}
+.net.on::before{content:"● ";color:var(--brand)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<script>
+"use strict";
+/* ============ Stockage (IndexedDB) ============ */
+const DB_NAME="parc-machines",DB_VER=1;
+let db;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const rq=indexedDB.open(DB_NAME,DB_VER);
+    rq.onupgradeneeded=()=>{
+      const d=rq.result;
+      d.createObjectStore("machines",{keyPath:"id"}).createIndex("code","code",{unique:false});
+      d.createObjectStore("zones",{keyPath:"id"});
+      d.createObjectStore("docs",{keyPath:"id"}).createIndex("machineId","machineId",{unique:false});
+      d.createObjectStore("meta",{keyPath:"key"});
+    };
+    rq.onsuccess=()=>{db=rq.result;res()};
+    rq.onerror=()=>rej(rq.error);
+  });
+}
+function tx(store,mode,fn){
+  return new Promise((res,rej)=>{
+    const t=db.transaction(store,mode);
+    const out=fn(t);
+    t.oncomplete=()=>res(out instanceof IDBRequest?out.result:undefined);
+    t.onerror=()=>rej(t.error);
+  });
+}
+const all=(s)=>tx(s,"readonly",t=>t.objectStore(s).getAll());
+const get=(s,k)=>tx(s,"readonly",t=>t.objectStore(s).get(k));
+const put=(s,v)=>tx(s,"readwrite",t=>{t.objectStore(s).put(v)});
+const del=(s,k)=>tx(s,"readwrite",t=>{t.objectStore(s).delete(k)});
+const byIndex=(s,i,k)=>tx(s,"readonly",t=>t.objectStore(s).index(i).getAll(k));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const norm=c=>String(c||"").trim();
+
+async function findByCode(code){
+  const r=await byIndex("machines","code",norm(code));
+  return r[0]||null;
+}
+async function pushHistory(id){
+  const m=(await get("meta","history"))||{key:"history",ids:[]};
+  m.ids=[id,...m.ids.filter(x=>x!==id)].slice(0,20);
+  await put("meta",m);
+}
+async function getHistory(n=5){
+  const m=(await get("meta","history"))||{ids:[]};
+  const out=[];
+  for(const id of m.ids){const x=await get("machines",id);if(x)out.push(x);if(out.length>=n)break}
+  return out;
+}
+
+/* ============ Utilitaires UI ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const app=$("#app");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),2200)}
+const nav=h=>{location.hash=h};
+const ICON={
+  scan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 12h10"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
+};
+function header(title,{back=null,right=""}={}){
+  return `<header class="bar">${back?`<button class="icon ghost" data-nav="${back}" aria-label="Retour">←</button>`:""}<h1>${esc(title)}</h1>${right}</header>`;
+}
+document.addEventListener("click",e=>{
+  const n=e.target.closest("[data-nav]");
+  if(n){e.preventDefault();nav(n.dataset.nav)}
+});
+function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+" Mo":Math.max(1,Math.round(b/1024))+" Ko"}
+
+/* ============ Écrans ============ */
+async function viewHome(){
+  const hist=await getHistory(5);
+  app.innerHTML=header("Parc Machines",{right:`<span class="net ${navigator.onLine?"on":"off"}">${navigator.onLine?"en ligne":"hors-ligne"}</span><button class="icon ghost" data-nav="#/settings" aria-label="Paramètres">⚙</button>`})+`
+  <main>
+    <button class="primary big" data-nav="#/scan">${ICON.scan}Scanner un code</button>
+    <div style="height:12px"></div>
+    <button class="big" style="min-height:84px" data-nav="#/catalog">${ICON.list}Catalogue des machines</button>
+    <h2>Dernières consultées</h2>
+    <div class="list">${hist.length?hist.map(m=>`
+      <button class="item" data-nav="#/machine/${m.id}"><div class="grow"><div class="t">${esc(m.model||"(sans modèle)")}</div><div class="s">${esc(m.location||"Sans zone")}${m.serial?" · S/N "+esc(m.serial):""}</div></div><span>›</span></button>`).join(""):`<div class="empty">Aucune machine consultée pour l'instant.</div>`}
+    </div>
+  </main>`;
+}
+
+async function viewCatalog(){
+  const [machines,zones]=await Promise.all([all("machines"),all("zones")]);
+  app.innerHTML=header("Catalogue",{back:"#/",right:`<button class="primary" data-nav="#/edit/new">+ Machine</button>`})+`
+  <main>
+    <input id="q" type="search" placeholder="Rechercher (modèle, n° série, code…)" autocomplete="off">
+    <div id="cat"></div>
+  </main>`;
+  const order=zones.sort((a,b)=>a.name.localeCompare(b.name,"fr")).map(z=>z.name);
+  const render=()=>{
+    const q=$("#q").value.trim().toLowerCase();
+    const f=machines.filter(m=>!q||[m.model,m.serial,m.code,m.location,m.specs].some(x=>String(x||"").toLowerCase().includes(q)));
+    if(!f.length){$("#cat").innerHTML=`<div class="empty">${machines.length?"Aucun résultat.":"Catalogue vide. Ajoute une machine ou scanne un code."}</div>`;return}
+    const groups=new Map();
+    for(const m of f){const k=m.location||"";if(!groups.has(k))groups.set(k,[]);groups.get(k).push(m)}
+    const keys=[...groups.keys()].sort((a,b)=>{
+      if(a===""||b==="")return a===""?1:-1;
+      const ia=order.indexOf(a),ib=order.indexOf(b);
+      return (ia<0?999:ia)-(ib<0?999:ib)||a.localeCompare(b,"fr");
+    });
+    $("#cat").innerHTML=keys.map(k=>`
+      <div class="zonehead">📍 ${esc(k||"Sans zone")}<span class="chip">${groups.get(k).length}</span></div>
+      <div class="list">${groups.get(k).sort((a,b)=>(a.model||"").localeCompare(b.model||"","fr")).map(m=>`
+        <button class="item" data-nav="#/machine/${m.id}"><div class="grow"><div class="t">${esc(m.model||"(sans modèle)")}</div><div class="s">${m.serial?"S/N "+esc(m.serial):"—"}${m.code?" · "+esc(m.code):""}</div></div><span>›</span></button>`).join("")}</div>`).join("");
+  };
+  $("#q").addEventListener("input",render);
+  render();
+}
+
+async function viewMachine(id){
+  const m=await get("machines",id);
+  if(!m){toast("Machine introuvable");return nav("#/catalog")}
+  await pushHistory(id);
+  const docs=await byIndex("docs","machineId",id);
+  docs.sort((a,b)=>b.added-a.added);
+  app.innerHTML=header(m.model||"Machine",{back:"#/catalog",right:`<button class="icon" data-nav="#/edit/${id}" aria-label="Modifier">✎</button>`})+`
+  <main>
+    <div class="card"><dl class="kv">
+      <dt>Modèle</dt><dd>${esc(m.model)||"—"}</dd>
+      <dt>N° de série</dt><dd>${esc(m.serial)||"—"}</dd>
+      <dt>Emplacement</dt><dd>${esc(m.location)||"—"}</dd>
+      <dt>Code</dt><dd>${esc(m.code)||"—"}</dd>
+      <dt>Caractéristiques</dt><dd>${esc(m.specs)||"—"}</dd>
+    </dl></div>
+
+    <h2>Documents (${docs.length})</h2>
+    <div class="list docs" id="docs">${docs.map(d=>`
+      <div class="item" data-doc="${d.id}">
+        ${d.type.startsWith("image/")?`<img class="thumb" data-thumb="${d.id}" alt="">`:`<div class="thumb">${esc((d.name.split(".").pop()||"").slice(0,4).toUpperCase())}</div>`}
+        <div class="grow"><div class="t">${esc(d.name)}</div><div class="s">${fmtSize(d.size)}</div></div>
+        <button class="ghost danger icon" data-deldoc="${d.id}" aria-label="Supprimer">🗑</button>
+      </div>`).join("")||`<div class="empty">Aucun document.</div>`}</div>
+    <div class="row" style="margin-top:10px">
+      <label class="btn" style="margin:0;color:var(--ink)">📎 Fichiers<input id="fileIn" type="file" multiple hidden></label>
+      <label class="btn" style="margin:0;color:var(--ink)">📷 Photo<input id="photoIn" type="file" accept="image/*" capture="environment" hidden></label>
+    </div>
+
+    <h2>Commentaires / interventions</h2>
+    <textarea id="cm" placeholder="Particularités, historique des interventions…" style="min-height:160px">${esc(m.comments)}</textarea>
+    <div class="row" style="margin-top:8px">
+      <button id="stamp">+ Ajouter la date du jour</button>
+      <button id="saveCm" class="primary">Enregistrer</button>
+    </div>
+  </main>`;
+
+  // vignettes
+  const urls=[];
+  for(const img of app.querySelectorAll("[data-thumb]")){
+    const d=docs.find(x=>x.id===img.dataset.thumb);
+    const u=URL.createObjectURL(d.blob);urls.push(u);img.src=u;
+  }
+  window.__cleanup=()=>urls.forEach(URL.revokeObjectURL);
+
+  $("#docs").addEventListener("click",async e=>{
+    const x=e.target.closest("[data-deldoc]");
+    if(x){
+      if(confirm("Supprimer ce document ?")){await del("docs",x.dataset.deldoc);viewMachine(id)}
+      return;
+    }
+    const row=e.target.closest("[data-doc]");
+    if(row){
+      const d=docs.find(z=>z.id===row.dataset.doc);
+      const u=URL.createObjectURL(d.blob);
+      const w=window.open(u,"_blank");
+      if(!w){const a=document.createElement("a");a.href=u;a.download=d.name;a.click()}
+      setTimeout(()=>URL.revokeObjectURL(u),60000);
+    }
+  });
+  const addFiles=async files=>{
+    for(const f of files){
+      await put("docs",{id:uid(),machineId:id,name:f.name||("photo-"+new Date().toISOString().slice(0,10)+".jpg"),type:f.type||"application/octet-stream",size:f.size,added:Date.now(),blob:f});
+    }
+    if(files.length){toast(files.length+" document(s) ajouté(s)");viewMachine(id)}
+  };
+  $("#fileIn").onchange=e=>addFiles([...e.target.files]);
+  $("#photoIn").onchange=e=>addFiles([...e.target.files]);
+  const saveCm=async(quiet)=>{
+    const cur=await get("machines",id);cur.comments=$("#cm").value;cur.updated=Date.now();
+    await put("machines",cur);if(!quiet)toast("Commentaires enregistrés");
+  };
+  $("#saveCm").onclick=()=>saveCm();
+  $("#stamp").onclick=()=>{
+    const ta=$("#cm"),d=new Date().toLocaleDateString("fr-FR");
+    ta.value=(ta.value?ta.value.replace(/\s*$/,"")+"\n\n":"")+d+" — ";
+    ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+  };
+  let tmr;$("#cm").addEventListener("input",()=>{clearTimeout(tmr);tmr=setTimeout(()=>saveCm(true),1200)});
+}
+
+async function viewEdit(id,prefill={}){
+  const isNew=id==="new";
+  const [zones,existing]=await Promise.all([all("zones"),isNew?null:get("machines",id)]);
+  zones.sort((a,b)=>a.name.localeCompare(b.name,"fr"));
+  const m=existing||{code:"",model:"",specs:"",serial:"",location:"",comments:"",...prefill};
+  const opts=[...zones.map(z=>z.name)];
+  if(m.location&&!opts.includes(m.location))opts.push(m.location);
+  app.innerHTML=header(isNew?"Nouvelle machine":"Modifier",{back:isNew?"#/catalog":`#/machine/${id}`})+`
+  <main>
+    <form id="f" autocomplete="off">
+      <label>Code-barres / QR</label>
+      <div class="row"><input name="code" value="${esc(m.code)}" placeholder="Scanner ou saisir" style="flex:3"><button type="button" id="rescan" class="icon" style="flex:0 0 56px" aria-label="Scanner">${ICON.scan.replace("<svg","<svg width='22' height='22'")}</button></div>
+      <label>Modèle *</label><input name="model" value="${esc(m.model)}" required>
+      <label>Numéro de série</label><input name="serial" value="${esc(m.serial)}">
+      <label>Emplacement</label>
+      <select name="location"><option value="">— Aucune zone —</option>${opts.map(o=>`<option ${o===m.location?"selected":""}>${esc(o)}</option>`).join("")}</select>
+      ${zones.length?"":`<div class="s" style="color:var(--mute);font-size:13px;margin-top:6px">Aucune zone définie. <a href="#/settings">Créer des zones</a></div>`}
+      <label>Caractéristiques de fonctionnement</label>
+      <textarea name="specs" placeholder="Ex : 400 V tri, 12 kW, 17 A, 50 Hz…">${esc(m.specs)}</textarea>
+      <label>Commentaires</label>
+      <textarea name="comments">${esc(m.comments)}</textarea>
+      <div class="row" style="margin-top:18px">
+        ${isNew?"":`<button type="button" id="del" class="danger">Supprimer</button>`}
+        <button class="primary" type="submit">Enregistrer</button>
+      </div>
+    </form>
+  </main>`;
+  const f=$("#f");
+  $("#rescan").onclick=()=>{sessionStorage.setItem("draft",JSON.stringify({id,data:Object.fromEntries(new FormData(f))}));openScanner({returnTo:"edit"})};
+  f.onsubmit=async e=>{
+    e.preventDefault();
+    const d=Object.fromEntries(new FormData(f));
+    d.code=norm(d.code);
+    if(d.code){
+      const dup=await findByCode(d.code);
+      if(dup&&dup.id!==m.id){
+        if(confirm(`Ce code est déjà utilisé par « ${dup.model} ». Ouvrir cette fiche ?`))return nav("#/machine/"+dup.id);
+        return;
+      }
+    }
+    const rec={...m,...d,id:m.id||uid(),updated:Date.now(),created:m.created||Date.now()};
+    await put("machines",rec);
+    toast("Enregistré");
+    nav("#/machine/"+rec.id);
+  };
+  const dl=$("#del");
+  if(dl)dl.onclick=async()=>{
+    if(!confirm("Supprimer cette machine et ses documents ?"))return;
+    for(const d of await byIndex("docs","machineId",id))await del("docs",d.id);
+    await del("machines",id);
+    nav("#/catalog");
+  };
+}
+
+async function viewSettings(){
+  const zones=(await all("zones")).sort((a,b)=>a.name.localeCompare(b.name,"fr"));
+  const machines=await all("machines");
+  const count=n=>machines.filter(m=>m.location===n).length;
+  app.innerHTML=header("Paramètres",{back:"#/"})+`
+  <main>
+    <h2>Zones d'exploitation</h2>
+    <form id="zf" class="row"><input name="n" placeholder="Ex : Arlatan cuisine" required style="flex:3"><button class="primary" style="flex:1">Ajouter</button></form>
+    <div class="list" style="margin-top:10px">${zones.map(z=>`
+      <div class="item" style="cursor:default"><div class="grow"><div class="t">${esc(z.name)}</div><div class="s">${count(z.name)} machine(s)</div></div>
+      <button class="icon" data-ren="${z.id}" aria-label="Renommer">✎</button>
+      <button class="icon danger" data-delz="${z.id}" aria-label="Supprimer">🗑</button></div>`).join("")||`<div class="empty">Aucune zone.</div>`}</div>
+
+    <h2>Sauvegarde</h2>
+    <div class="card">
+      <p style="margin-top:0;color:var(--mute);font-size:14px">Les données restent uniquement sur cet appareil. Fais une sauvegarde régulière (fichier .json avec documents inclus).</p>
+      <div class="row"><button id="exp">⬇ Exporter</button><label class="btn" style="margin:0">⬆ Importer<input id="imp" type="file" accept="application/json" hidden></label></div>
+    </div>
+    <div class="net" id="stor" style="margin-top:14px"></div>
+  </main>`;
+  $("#zf").onsubmit=async e=>{
+    e.preventDefault();
+    const n=norm(new FormData(e.target).get("n"));
+    if(zones.some(z=>z.name.toLowerCase()===n.toLowerCase()))return toast("Cette zone existe déjà");
+    await put("zones",{id:uid(),name:n});viewSettings();
+  };
+  $("main").addEventListener("click",zoneClick);
+  function zoneClick(e){
+    const r=e.target.closest("[data-ren]"),d=e.target.closest("[data-delz]");
+    if(!r&&!d)return;
+    const z=zones.find(x=>x.id===(r||d).dataset.ren||x.id===(r||d).dataset.delz);
+    if(r)(async()=>{
+      const n=norm(prompt("Nouveau nom de la zone :",z.name)||"");
+      if(!n||n===z.name)return;
+      if(zones.some(o=>o.id!==z.id&&o.name.toLowerCase()===n.toLowerCase()))return toast("Nom déjà utilisé");
+      for(const m of machines.filter(m=>m.location===z.name)){m.location=n;await put("machines",m)}
+      z.name=n;await put("zones",z);viewSettings();
+    })();
+    else(async()=>{
+      const c=count(z.name);
+      if(!confirm(c?`${c} machine(s) sont dans « ${z.name} ». Elles passeront « Sans zone ». Supprimer ?`:`Supprimer « ${z.name} » ?`))return;
+      for(const m of machines.filter(m=>m.location===z.name)){m.location="";await put("machines",m)}
+      await del("zones",z.id);viewSettings();
+    })();
+  }
+
+  $("#exp").onclick=async()=>{
+    const toB64=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});
+    const docs=await all("docs");
+    const out={version:1,date:new Date().toISOString(),zones:await all("zones"),machines:await all("machines"),
+      docs:await Promise.all(docs.map(async d=>({...d,blob:await toB64(d.blob)})))};
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:"application/json"}));
+    a.download="parc-machines-"+new Date().toISOString().slice(0,10)+".json";a.click();
+  };
+  $("#imp").onchange=async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{
+      const j=JSON.parse(await f.text());
+      if(!confirm(`Importer ${j.machines.length} machine(s) ? Les fiches de même identifiant seront remplacées.`))return;
+      for(const z of j.zones)await put("zones",z);
+      for(const m of j.machines)await put("machines",m);
+      for(const d of j.docs)await put("docs",{...d,blob:await (await fetch(d.blob)).blob()});
+      toast("Import terminé");viewSettings();
+    }catch(err){toast("Fichier invalide")}
+  };
+  if(navigator.storage&&navigator.storage.estimate){
+    const {usage,quota}=await navigator.storage.estimate();
+    const p=navigator.storage.persisted?await navigator.storage.persisted():false;
+    $("#stor").textContent=`Stockage : ${fmtSize(usage)} utilisés · stockage ${p?"protégé":"non protégé"} par le navigateur`;
+  }
+}
+
+/* ============ Scanner ============ */
+let scanState=null;
+async function openScanner({returnTo=null}={}){
+  const hasBD="BarcodeDetector" in window;
+  const ov=document.createElement("div");
+  ov.className="scan";
+  ov.innerHTML=`<video playsinline muted></video><div class="frame"></div>
+    <div class="ctl"><div class="msg" id="smsg">${hasBD?"Démarrage de la caméra…":"Lecture caméra non supportée par ce navigateur : saisie manuelle."}</div>
+    <form id="mf" class="row"><input id="mc" placeholder="Saisir / coller un code" style="flex:3" autocomplete="off"><button class="primary" style="flex:1">OK</button></form>
+    <button id="sc" type="button">Fermer</button></div>`;
+  document.body.appendChild(ov);
+  const video=$("video",ov);
+  let stream=null,stop=false,last="";
+  const close=()=>{stop=true;if(stream)stream.getTracks().forEach(t=>t.stop());ov.remove();scanState=null};
+  scanState={close};
+  const handle=async code=>{
+    code=norm(code);if(!code)return;
+    close();
+    if(navigator.vibrate)navigator.vibrate(60);
+    if(returnTo==="edit"){
+      const dr=JSON.parse(sessionStorage.getItem("draft")||"{}");
+      const hit=await findByCode(code);
+      if(hit&&hit.id!==dr.id){toast("Code déjà utilisé : "+hit.model);return nav("#/machine/"+hit.id)}
+      return viewEdit(dr.id,{...dr.data,code});
+    }
+    const m=await findByCode(code);
+    if(m)nav("#/machine/"+m.id);            // Cas 2 : code connu → fiche
+    else{                                     // Cas 1 : code inconnu → création pré-remplie
+      sessionStorage.setItem("prefillCode",code);
+      nav("#/edit/new");
+    }
+  };
+  $("#sc").onclick=close;
+  $("#mf").onsubmit=e=>{e.preventDefault();handle($("#mc").value)};
+  if(!hasBD)return;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+    video.srcObject=stream;await video.play();
+    const det=new BarcodeDetector();   // tous les formats supportés par l'appareil
+    $("#smsg").textContent="Vise le code-barres ou le QR code";
+    const loop=async()=>{
+      if(stop)return;
+      try{
+        const r=await det.detect(video);
+        if(r.length&&r[0].rawValue&&r[0].rawValue!==last){last=r[0].rawValue;return handle(last)}
+      }catch(_){}
+      setTimeout(()=>requestAnimationFrame(loop),120);
+    };
+    loop();
+  }catch(err){
+    $("#smsg").textContent="Caméra indisponible ("+(err.name||"erreur")+"). Saisie manuelle possible.";
+  }
+}
+
+/* ============ Routeur ============ */
+async function route(){
+  if(window.__cleanup){try{window.__cleanup()}catch(_){}window.__cleanup=null}
+  if(scanState)scanState.close();
+  const h=location.hash||"#/";
+  const [,a,b]=h.split("/");
+  try{
+    if(a===""||a===undefined)await viewHome();
+    else if(a==="catalog")await viewCatalog();
+    else if(a==="settings")await viewSettings();
+    else if(a==="machine")await viewMachine(b);
+    else if(a==="edit"){
+      const code=sessionStorage.getItem("prefillCode");sessionStorage.removeItem("prefillCode");
+      await viewEdit(b,code?{code}:{});
+    }
+    else if(a==="scan"){history.replaceState(null,"","#/");await viewHome();openScanner()}
+    else await viewHome();
+  }catch(err){app.innerHTML=`<main><div class="card">Erreur : ${esc(err.message)}</div></main>`;console.error(err)}
+  window.scrollTo(0,0);
+}
+addEventListener("hashchange",route);
+addEventListener("online",()=>{if(!location.hash||location.hash==="#/")route()});
+addEventListener("offline",()=>{if(!location.hash||location.hash==="#/")route()});
+
+(async()=>{
+  await openDB();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+  route();
+})();
+</script>
+</body>
+</html>
